@@ -59,10 +59,12 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     androidTestImplementation("io.appium:java-client:8.4.0")
+
     testImplementation("org.slf4j:slf4j-api:2.0.7")
     testImplementation("org.slf4j:slf4j-simple:2.0.7")
 
     implementation("io.github.microutils:kotlin-logging:4.0.0-beta-2")
     androidTestImplementation("androidx.test:core:1.5.0")
+    implementation("org.seleniumhq.selenium:selenium-support:4.9.0")
 
 }
