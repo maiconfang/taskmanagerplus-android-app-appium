@@ -74,6 +74,7 @@ class HomeTest {
                 setApp(config.getProperty("app.path"))
                 setAutomationName(config.getProperty("automation.name"))
                 setNoReset(config.getProperty("no.reset").toBoolean())
+                setFullReset(config.getProperty("full.reset").toBoolean())
             }
 
             driver = AndroidDriver(URL(config.getProperty("appium.server.url")), options)
