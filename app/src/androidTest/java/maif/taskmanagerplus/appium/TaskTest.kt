@@ -132,6 +132,38 @@ class TaskTest {
     }
 
     /**
+     * Test method to add a new task and verify its presence in the task list.
+     */
+    @Test
+    fun testAddNewTask() {
+        try {
+            // Navigate to Task Manager
+            taskPage.navigateToTaskManager()
+
+            // Define new task details
+            val taskTitle = "Automated Task"
+            val taskDescription = "This task was added by an automated test."
+            val isCompleted = false
+
+            // Add new task
+            taskPage.addNewTask(taskTitle, taskDescription, isCompleted)
+            logger.info { "Added new task with title: '$taskTitle'." }
+
+            // Verify that the new task appears in the task list
+            val taskList = taskPage.getTaskList()
+            val isTaskAdded = taskList.any { it.contains(taskTitle) }
+            assertTrue("The new task should be present in the task list.", isTaskAdded)
+            logger.info { "Test Passed: New task '$taskTitle' was added successfully." }
+
+
+
+        } catch (e: Exception) {
+            logger.error(e) { "Test Failed: ${e.message}" }
+            throw e // Rethrow to mark the test as failed
+        }
+    }
+
+    /**
      * Tears down the testing environment after each test.
      *
      * Quits the AppiumDriver to close the application and end the session.

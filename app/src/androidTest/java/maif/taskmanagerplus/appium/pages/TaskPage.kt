@@ -31,6 +31,11 @@ class TaskPage(private val driver: AppiumDriver) {
     private val navigationMenuButton: By = By.xpath("//android.widget.ImageButton[@content-desc='Open navigation drawer']")
 //    private val taskManagerMenuItem: By = By.xpath("//android.widget.TextView[@text='Task Manager']")
 
+    // Locators for AddTaskActivity
+    private val taskTitleEditText: By = By.id("et_task_title")
+    private val taskDescriptionEditText: By = By.id("et_task_description")
+    private val saveTaskButton: By = By.id("btn_save_task")
+
     private val taskManagerMenuItem: By = By.id(Constants.TASK_MENU_ID)
 
 
@@ -138,22 +143,24 @@ class TaskPage(private val driver: AppiumDriver) {
     }
 
     /**
-     * Retrieves the list of tasks displayed in the RecyclerView.
+     * Retrieves the list of task titles displayed in the RecyclerView.
      *
-     * @return A list of MobileElement representing each task item.
+     * @return A list of task titles as Strings.
      */
-    fun getTaskList(): List<WebElement> {
+    fun getTaskList(): List<String> {
         return try {
             val recyclerView = WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(
-                    By.className("androidx.recyclerview.widget.RecyclerView")
-                ))
+                .until(ExpectedConditions.presenceOfElementLocated(taskRecyclerView))
 
-            recyclerView.findElements(By.className("androidx.recyclerview.widget.RecyclerView"))
+            // Locate all TextViews with the task titles within the RecyclerView
+            val taskTitleElements = recyclerView.findElements(By.id("tv_task_title"))
                 .filterIsInstance<WebElement>()
+                .map { it.text }
                 .also {
                     logger.info { "Retrieved ${it.size} tasks from the list." }
                 }
+
+            taskTitleElements
         } catch (e: Exception) {
             logger.error(e) { "Failed to retrieve task list: ${e.message}" }
             throw e
@@ -246,4 +253,58 @@ class TaskPage(private val driver: AppiumDriver) {
             throw e
         }
     }
+
+    /**
+     * Adds a new task with the provided title and description.
+     *
+     * @param title The title of the new task.
+     * @param description The description of the new task.
+     * @param isCompleted Boolean indicating if the task is completed.
+     */
+    fun addNewTask(title: String, description: String, isCompleted: Boolean = false) {
+        try {
+            // Click on Add Task button
+            clickAddTaskButton()
+
+            // Enter task title
+            val titleField = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskTitleEditText))
+            titleField.clear()
+            titleField.sendKeys(title)
+            logger.info { "Entered task title: '$title'" }
+
+            // Enter task description
+            val descriptionField = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskDescriptionEditText))
+            descriptionField.clear()
+            descriptionField.sendKeys(description)
+            logger.info { "Entered task description: '$description'" }
+
+            // Set completed checkbox if needed
+            if (isCompleted) {
+                val completedCb = WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.elementToBeClickable(completedCheckBox))
+                if (!completedCb.isSelected) {
+                    completedCb.click()
+                    logger.info { "Set task as completed." }
+                }
+            }
+
+            // Click Save Task button
+            val saveButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(saveTaskButton))
+            saveButton.click()
+            logger.info { "Clicked on Save Task button." }
+
+            // Optionally, wait for the task list to refresh
+            WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskRecyclerView))
+            logger.info { "Task list refreshed after saving." }
+
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to add new task: ${e.message}" }
+            throw e
+        }
+    }
+
 }
