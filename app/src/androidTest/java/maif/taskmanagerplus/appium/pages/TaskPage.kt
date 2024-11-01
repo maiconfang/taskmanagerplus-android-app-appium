@@ -23,8 +23,11 @@ private val logger = KotlinLogging.logger {}
 class TaskPage(private val driver: AppiumDriver) {
 
     // Locators for UI elements
+
     private val searchEditText: By = By.id(Constants.SEARCH_TASK_ID)
     private val addTaskButton: By = By.id(Constants.ADD_TASK_BUTTON_ID)
+    private val editTaskButton: By = By.id(Constants.EDIT_TASK_BUTTON_ID)
+    private val deleteTaskButton: By = By.id(Constants.DELETE_TASK_BUTTON_ID)
     private val completedCheckBox: By = By.id(Constants.COMPLETED_CHECKBOX_ID)
     private val pendingCheckBox: By = By.id(Constants.PENDING_CHECKBOX_ID)
     private val taskRecyclerView: By = By.id(Constants.TASK_RECYCLER_VIEW_ID)
@@ -32,9 +35,14 @@ class TaskPage(private val driver: AppiumDriver) {
 //    private val taskManagerMenuItem: By = By.xpath("//android.widget.TextView[@text='Task Manager']")
 
     // Locators for AddTaskActivity
-    private val taskTitleEditText: By = By.id("et_task_title")
-    private val taskDescriptionEditText: By = By.id("et_task_description")
-    private val saveTaskButton: By = By.id("btn_save_task")
+    private val taskTitleAddText: By = By.id(Constants.ADD_TASK_TITLE_ID)
+    private val taskDescriptionAddText: By = By.id(Constants.ADD_TASK_DESCRIPTION_ID)
+
+    // Locators for EditTaskActivity
+    private val saveTaskButton: By = By.id(Constants.SAVE_TASK_BUTTON_ID) // AddTaskActivity and EditTaskActivity
+    private val taskTitleEditText: By = By.id(Constants.EDIT_TASK_TITLE_ID)
+    private val taskDescriptionEditText: By = By.id(Constants.EDIT_TASK_DESCRIPTION_ID)
+    private val pendingCheckEditBox: By = By.id(Constants.EDIT_TASK_PENDING_CHECK_BOX_ID)
 
     private val taskManagerMenuItem: By = By.id(Constants.TASK_MENU_ID)
 
@@ -99,6 +107,53 @@ class TaskPage(private val driver: AppiumDriver) {
             throw e
         }
     }
+
+    /**
+     * Clicks the button to edit a edit task.
+     */
+    fun clickEditTaskButton() {
+        try {
+            val editButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(editTaskButton))
+            editButton.click()
+            logger.info { "Clicked on Edit Task button." }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to click Edit Task button: ${e.message}" }
+            throw e
+        }
+    }
+
+    /**
+     * Clicks the button to delete a delete task.
+     */
+    fun clickDeleteTaskButton() {
+        try {
+            val deleteButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(deleteTaskButton))
+            deleteButton.click()
+            logger.info { "Clicked on Delete Task button." }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to click Delete Task button: ${e.message}" }
+            throw e
+        }
+    }
+
+    /**
+     * Clicks the button to add a new task.
+     */
+    fun clickCheckBoxPending() {
+        try {
+            val addButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(addTaskButton))
+            addButton.click()
+            logger.info { "Clicked on Add Task button." }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to click Add Task button: ${e.message}" }
+            throw e
+        }
+    }
+
+
 
     /**
      * Sets the completed filter checkbox.
@@ -168,6 +223,24 @@ class TaskPage(private val driver: AppiumDriver) {
     }
 
     /**
+     * Clicks the "DELETE" button in the deletion confirmation dialog.
+     */
+    fun clickDeleteConfirmationButton() {
+        try {
+            // Locate the "DELETE" button by its text and click it
+            val deleteButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.Button[@text='DELETE']")))
+            deleteButton.click()
+            logger.info { "Clicked on 'DELETE' button in confirmation dialog." }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to click 'DELETE' button: ${e.message}" }
+            throw e
+        }
+    }
+
+
+
+    /**
      * Clicks on a task item to view its details.
      *
      * @param taskTitle The title of the task to click.
@@ -185,43 +258,91 @@ class TaskPage(private val driver: AppiumDriver) {
     }
 
     /**
-     * Edits a specific task by clicking the edit button.
+     * Edits the details of an existing task.
      *
-     * @param taskTitle The title of the task to edit.
+     * @param newTitle The new title for the task.
+     * @param newDescription The new description for the task.
+     * @param isCompleted The new completion status for the task.
      */
-    fun editTask(taskTitle: String) {
+    fun editTask(newTitle: String, newDescription: String, isCompleted: Boolean) {
         try {
-            // Assuming each task item has an edit button with a specific ID or description
-            val editButton = WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.TextView[@text='$taskTitle']/../android.widget.ImageButton[@content-desc='Edit Task']")))
-            editButton.click()
-            logger.info { "Clicked on Edit button for task: '$taskTitle'" }
+            // Locate and edit the task title
+            val titleField = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskTitleEditText))
+            titleField.clear()
+            titleField.sendKeys(newTitle)
+            logger.info { "Updated task title to: '$newTitle'" }
+
+            // Locate and edit the task description
+            val descriptionField = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskDescriptionEditText))
+            descriptionField.clear()
+            descriptionField.sendKeys(newDescription)
+            logger.info { "Updated task description to: '$newDescription'" }
+
+            // Set the completed checkbox
+            val completedCb = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(pendingCheckEditBox))
+            if (completedCb.isSelected != isCompleted) {
+                completedCb.click()
+                logger.info { "Set task as completed: $isCompleted" }
+            } else {
+                logger.info { "Task completion status already set to: $isCompleted" }
+            }
+
+            // Click Save Task button
+            val saveButton = WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(saveTaskButton))
+            saveButton.click()
+            logger.info { "Clicked on Save Task button after editing." }
+
+            // Optionally, wait for the task list to refresh
+            WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskRecyclerView))
+            logger.info { "Task list refreshed after editing." }
+
         } catch (e: Exception) {
-            logger.error(e) { "Failed to edit task '$taskTitle': ${e.message}" }
+            logger.error(e) { "Failed to edit task details: ${e.message}" }
             throw e
         }
     }
 
     /**
-     * Deletes a specific task by clicking the delete button.
+     * Deletes a specific task by clicking the delete button and confirming the deletion.
      *
      * @param taskTitle The title of the task to delete.
      */
     fun deleteTask(taskTitle: String) {
         try {
-            // Assuming each task item has a delete button with a specific ID or description
-            val deleteButton = WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.TextView[@text='$taskTitle']/../android.widget.ImageButton[@content-desc='Delete Task']")))
-            deleteButton.click()
-            logger.info { "Clicked on Delete button for task: '$taskTitle'" }
 
-            // Optionally handle confirmation dialog
-            val confirmButton = WebDriverWait(driver, Duration.ofSeconds(10))
+            // Click the "DELETE" button in the confirmation dialog using its resource-id
+            val confirmDeleteButton = WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(By.id("android:id/button1")))
-            confirmButton.click()
-            logger.info { "Confirmed deletion of task: '$taskTitle'" }
+            confirmDeleteButton.click()
+            logger.info { "Clicked on 'DELETE' button in confirmation dialog." }
+
+            // Optionally, verify that the task has been deleted
+            WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//android.widget.TextView[@text='$taskTitle']")))
+            logger.info { "Verified that task '$taskTitle' has been deleted from the list." }
         } catch (e: Exception) {
             logger.error(e) { "Failed to delete task '$taskTitle': ${e.message}" }
+            throw e
+        }
+    }
+
+
+    /**
+     * Deletes a specific task by clicking the delete button and confirming the deletion.
+     *
+     * @param taskTitle The title of the task to delete.
+     */
+    fun deleteTaskWithConfirmation(taskTitle: String) {
+        try {
+            // Click on the delete button for the specified task
+            deleteTask(taskTitle)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to delete task '$taskTitle' with confirmation: ${e.message}" }
             throw e
         }
     }
@@ -268,14 +389,14 @@ class TaskPage(private val driver: AppiumDriver) {
 
             // Enter task title
             val titleField = WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.visibilityOfElementLocated(taskTitleEditText))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskTitleAddText))
             titleField.clear()
             titleField.sendKeys(title)
             logger.info { "Entered task title: '$title'" }
 
             // Enter task description
             val descriptionField = WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.visibilityOfElementLocated(taskDescriptionEditText))
+                .until(ExpectedConditions.visibilityOfElementLocated(taskDescriptionAddText))
             descriptionField.clear()
             descriptionField.sendKeys(description)
             logger.info { "Entered task description: '$description'" }

@@ -5,19 +5,19 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="HomeKotlinTest">
+      <SelectionState runConfigName="testEditTask()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="HomeTest">
+      <SelectionState runConfigName="testInsertTaskViaContentProvider()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="testNavigateToTaskManager()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="TaskTest">
+      <SelectionState runConfigName="deleteEditTask()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testAddNewTask()">
+      <SelectionState runConfigName="deleteTask()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

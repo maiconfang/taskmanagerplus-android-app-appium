@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
 }
 
 android {
@@ -18,6 +19,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            var debuggable = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -54,6 +58,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+//    implementation(libs.androidx.room.common)
+//    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,5 +74,21 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:4.0.0-beta-2")
     androidTestImplementation("androidx.test:core:1.5.0")
     implementation("org.seleniumhq.selenium:selenium-support:4.9.0")
+
+    // Room dependencies using Kotlin DSL syntax
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
+
+    // Optional Room components
+    implementation("androidx.room:room-rxjava2:$room_version")
+    implementation("androidx.room:room-rxjava3:$room_version")
+    implementation("androidx.room:room-guava:$room_version")
+    testImplementation("androidx.room:room-testing:$room_version")
+    implementation("androidx.room:room-paging:$room_version")
 
 }

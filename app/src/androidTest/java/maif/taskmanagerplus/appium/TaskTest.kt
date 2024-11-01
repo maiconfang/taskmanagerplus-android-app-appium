@@ -1,6 +1,7 @@
 package maif.taskmanagerplus.appium.tests
 
 import android.content.Context
+import android.content.Intent
 import androidx.test.platform.app.InstrumentationRegistry
 import io.appium.java_client.AppiumDriver
 import io.appium.java_client.android.AndroidDriver
@@ -47,6 +48,7 @@ class TaskTest {
     fun setUp() {
         try {
             // Initialize the application context
+
             context = InstrumentationRegistry.getInstrumentation().context
             logger.info { "Application context obtained." }
 
@@ -59,6 +61,9 @@ class TaskTest {
             // Initialize Page Objects
             taskPage = TaskPage(driver)
             logger.info { "TaskPage object initialized." }
+
+            // Wait for a short period to ensure data is inserted
+            Thread.sleep(2000)
 
         } catch (e: Exception) {
             logger.error(e) { "Setup failed: ${e.message}" }
@@ -112,7 +117,7 @@ class TaskTest {
      * Test method to navigate to the Task Manager screen and verify its display.
      */
     @Test
-    fun testNavigateToTaskManager() {
+    fun testNavigateToTask() {
         try {
             // Navigate to Task Manager
             taskPage.navigateToTaskManager()
@@ -130,6 +135,7 @@ class TaskTest {
             throw e // Rethrow to mark the test as failed
         }
     }
+
 
     /**
      * Test method to add a new task and verify its presence in the task list.
@@ -156,6 +162,86 @@ class TaskTest {
             logger.info { "Test Passed: New task '$taskTitle' was added successfully." }
 
 
+
+        } catch (e: Exception) {
+            logger.error(e) { "Test Failed: ${e.message}" }
+            throw e // Rethrow to mark the test as failed
+        }
+    }
+
+
+    /**
+     * Test method to edit an existing task and verify the changes.
+     */
+    @Test
+    fun testEditTask() {
+        try {
+            // Navigate to Task Manager
+            taskPage.navigateToTaskManager()
+            logger.info { "Navigated to Task Manager." }
+
+            // Define the task to edit
+            val originalTaskTitle = "Task to Edit"
+            val newTaskTitle = "Edited Task Title"
+            val newTaskDescription = "This task has been edited by an automated test."
+            val newIsCompleted = true
+
+            taskPage.setCompletedFilter(true)
+
+            // Finde record on list
+            taskPage.enterSearchText(originalTaskTitle)
+
+            // Click on the task to view details
+            taskPage.clickEditTaskButton()
+            logger.info { "Clicked on task with title: '$originalTaskTitle'." }
+
+            // Edit the task details
+            taskPage.editTask(newTaskTitle, newTaskDescription, newIsCompleted)
+            logger.info { "Edited task details for '$originalTaskTitle'." }
+
+            // Verify that the task has been updated in the task list
+            val taskList = taskPage.getTaskList()
+            val isTaskEdited = taskList.any { it.contains(newTaskTitle) }
+            assertTrue("The task should be edited and present with the new title.", isTaskEdited)
+            logger.info { "Test Passed: Task '$originalTaskTitle' was edited successfully." }
+
+        } catch (e: Exception) {
+            logger.error(e) { "Test Failed: ${e.message}" }
+            throw e // Rethrow to mark the test as failed
+        }
+    }
+
+    /**
+     * Test method to delete an existing task and verify the changes.
+     */
+    @Test
+    fun deleteTask() {
+        try {
+            // Navigate to Task Manager
+            taskPage.navigateToTaskManager()
+            logger.info { "Navigated to Task Manager." }
+
+            // Define the task to edit
+            val originalTaskTitle = "Task to Delete"
+
+            taskPage.setCompletedFilter(true)
+
+            // Finde record on list
+            taskPage.enterSearchText(originalTaskTitle)
+
+            // Click on the task to view details
+            taskPage.clickDeleteTaskButton()
+            logger.info { "Clicked on task with title: '$originalTaskTitle'." }
+
+            // Delete the task with confirmation
+            taskPage.deleteTaskWithConfirmation(originalTaskTitle)
+            logger.info { "Deleted task with title: '$originalTaskTitle'." }
+
+            // Optionally, verify that the task has been deleted
+            val taskList = taskPage.getTaskList()
+            val isTaskDeleted = !taskList.contains(originalTaskTitle)
+            assertTrue("The task should be deleted and not present in the list.", isTaskDeleted)
+            logger.info { "Test Passed: Task '$originalTaskTitle' was deleted successfully." }
 
         } catch (e: Exception) {
             logger.error(e) { "Test Failed: ${e.message}" }
